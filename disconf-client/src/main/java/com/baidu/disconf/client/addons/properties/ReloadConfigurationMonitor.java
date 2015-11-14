@@ -1,6 +1,3 @@
-/*
- * Copyright (C) 2015 Baidu, Inc. All Rights Reserved.
- */
 package com.baidu.disconf.client.addons.properties;
 
 import java.util.ArrayList;
@@ -24,6 +21,11 @@ public class ReloadConfigurationMonitor extends TimerTask {
     }
 
     public void run() {
+
+        reload();
+    }
+
+    public static void reload() {
 
         for (ReconfigurableBean bean : reconfigurableBeans) {
             try {

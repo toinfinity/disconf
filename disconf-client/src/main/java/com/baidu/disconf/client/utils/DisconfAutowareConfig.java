@@ -29,39 +29,76 @@ public final class DisconfAutowareConfig {
 
     /**
      * 先用TOMCAT模式进行导入配置文件，若找不到，则用项目目录模式进行导入
-     *
-     * @param filename
-     *
-     * @return
      */
-    private static Properties getProperties(final String propertyFilePath) {
+    private static Properties getProperties(final String propertyFilePath) throws Exception {
 
         try {
 
             // 使用全路径的配置文件载入器
             return ConfigLoaderUtils.loadConfig(propertyFilePath);
+
         } catch (Exception e) {
 
-            try {
-
-                // 只用文件名 来载入试试
-                String filename = FilenameUtils.getName(propertyFilePath);
-                return ConfigLoaderUtils.loadConfig(filename);
-
-            } catch (Exception e1) {
-
-                LOGGER.error(String.format("read properties file %s error", propertyFilePath), e1);
-            }
+            // 只用文件名 来载入试试
+            String filename = FilenameUtils.getName(propertyFilePath);
+            return ConfigLoaderUtils.loadConfig(filename);
 
         }
-        return null;
+    }
+
+    /**
+     * 使用 system env 进行数据导入, 能识别   DisInnerConfigAnnotation 的标识
+     *
+     * @Description: auto ware
+     */
+    public static void autowareConfigWithSystemEnv(final Object obj) throws Exception {
+
+        try {
+
+            Field[] fields = obj.getClass().getDeclaredFields();
+
+            for (Field field : fields) {
+
+                if (field.isAnnotationPresent(DisInnerConfigAnnotation.class)) {
+
+                    if (Modifier.isStatic(field.getModifiers())) {
+                        continue;
+                    }
+
+                    String name;
+                    String value;
+
+                    // disconf使用的配置
+
+                    DisInnerConfigAnnotation config = field.getAnnotation(DisInnerConfigAnnotation.class);
+                    name = config.name();
+
+                    // 优先使用 系统参数或命令行导入
+                    value = System.getProperty(name);
+                    field.setAccessible(true);
+
+                    if (null != value) {
+
+                        try {
+
+                            ClassUtils.setFieldValeByType(field, obj, value);
+
+                        } catch (Exception e) {
+
+                            LOGGER.error(String.format("invalid config: %s", name), e);
+                        }
+
+                    }
+                }
+            }
+        } catch (Exception e) {
+
+            throw new Exception("error while autowareConfigWithSystemEnv autowire config file", e);
+        }
     }
 
     /**
      * 自动导入配置数据,能识别 DisconfFileItem 或 DisInnerConfigAnnotation 的标识
-     *
-     * @param
-     * @param propertyFilePath
      *
      * @Description: auto ware
      */
@@ -84,8 +121,8 @@ public final class DisconfAutowareConfig {
                         continue;
                     }
 
-                    String name = "";
-                    String value = "";
+                    String name;
+                    String value;
 
                     if (field.isAnnotationPresent(DisconfFileItem.class)) {
 
@@ -94,18 +131,26 @@ public final class DisconfAutowareConfig {
 
                     } else {
 
+                        // disconf使用的配置
+
                         DisInnerConfigAnnotation config = field.getAnnotation(DisInnerConfigAnnotation.class);
                         name = config.name();
+
                         String defaultValue = config.defaultValue();
                         value = prop.getProperty(name, defaultValue);
+
+                        // using disconf as prefix to avoid env confusion
+                        if (value.equals(defaultValue) && name != null) {
+                            if (name.contains("disconf.")) {
+                                String newName = name.substring(name.indexOf('.') + 1);
+                                value = prop.getProperty(newName, defaultValue);
+                            }
+                        }
                     }
 
                     field.setAccessible(true);
 
-                    if (null == value) {
-
-                        continue;
-                    } else {
+                    if (null != value) {
 
                         try {
 
@@ -113,7 +158,7 @@ public final class DisconfAutowareConfig {
 
                         } catch (Exception e) {
 
-                            LOGGER.error(String.format("invalid config: %s@%s", name), e);
+                            LOGGER.error(String.format("invalid config: %s", name), e);
                         }
                     }
                 }
@@ -126,9 +171,6 @@ public final class DisconfAutowareConfig {
 
     /**
      * 自动导入Static配置数据,能识别 DisconfFileItem 或 DisconfFileItem 的标识
-     *
-     * @param
-     * @param propertyFilePath
      *
      * @Description: auto ware
      */
@@ -168,12 +210,9 @@ public final class DisconfAutowareConfig {
     /**
      * 自动导入配置文件至 static变量
      *
-     * @param cls
-     * @param propertyFilePath
-     *
      * @throws Exception
      */
-    public static void autowareStatucConfig(Class<?> cls, final String propertyFilePath) throws Exception {
+    public static void autowareStaticConfig(Class<?> cls, final String propertyFilePath) throws Exception {
 
         // 读配置文件
         Properties prop = getProperties(propertyFilePath);
@@ -186,9 +225,6 @@ public final class DisconfAutowareConfig {
 
     /**
      * 自动导入某个配置文件
-     *
-     * @param obj
-     * @param propertyFilePath
      *
      * @throws Exception
      */

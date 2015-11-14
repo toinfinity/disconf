@@ -1,6 +1,3 @@
-/*
- * Copyright (C) 2015 KNIGHT, Inc. All Rights Reserved.
- */
 package com.baidu.disconf.web.innerapi.zookeeper.impl;
 
 import java.nio.charset.Charset;
@@ -34,7 +31,7 @@ import com.baidu.dsp.common.exception.RemoteException;
  */
 public class ZookeeperDriverImpl implements ZooKeeperDriver, InitializingBean, DisposableBean {
 
-    protected static final Logger LOG = LoggerFactory.getLogger(ZooKeeperDriver.class);
+    protected static final Logger LOG = LoggerFactory.getLogger(ZookeeperDriverImpl.class);
 
     @Autowired
     private ZooConfig zooConfig;
@@ -183,9 +180,7 @@ public class ZookeeperDriverImpl implements ZooKeeperDriver, InitializingBean, D
         List<String> children = zooKeeper.getChildren(path, false);
         for (String firstKey : children) {
 
-            ZkDisconfData zkDisconfData = new ZkDisconfData();
-
-            zkDisconfData = getDisconfData(path, firstKey, zooKeeper);
+            ZkDisconfData zkDisconfData = getDisconfData(path, firstKey, zooKeeper);
             if (zkDisconfData != null) {
                 ret.put(firstKey, zkDisconfData);
             }
@@ -203,7 +198,7 @@ public class ZookeeperDriverImpl implements ZooKeeperDriver, InitializingBean, D
      * @throws KeeperException
      */
     private ZkDisconfData getDisconfData(String path, String keyName, ZooKeeper zooKeeper)
-        throws KeeperException, InterruptedException {
+            throws KeeperException, InterruptedException {
 
         String curPath = path + "/" + keyName;
 
@@ -266,7 +261,7 @@ public class ZookeeperDriverImpl implements ZooKeeperDriver, InitializingBean, D
     private static final Charset CHARSET = Charset.forName("UTF-8");
 
     private void getConf(ZooKeeper zk, String groupName, String displayName, List<String> retList)
-        throws KeeperException, InterruptedException {
+            throws KeeperException, InterruptedException {
         try {
 
             StringBuffer sb = new StringBuffer();

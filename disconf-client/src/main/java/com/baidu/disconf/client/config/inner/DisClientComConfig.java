@@ -50,13 +50,15 @@ public class DisClientComConfig {
                 addr = InetAddress.getLocalHost();
                 host = addr.getHostName();
             } catch (UnknownHostException e) {
+                LOGGER.info("");
             }
 
         } else {
-            // get host
+            // get port
             try {
                 port = Integer.parseInt(properties.getProperty("VCAP_APP_HOST"));
             } catch (Exception e) {
+                LOGGER.info("");
             }
         }
 
@@ -67,11 +69,9 @@ public class DisClientComConfig {
 
     /**
      * 获取指纹
-     *
-     * @return
      */
     public String getInstanceFingerprint() {
         return instanceFingerprint.getHost() + "_" + String.valueOf(instanceFingerprint.getPort()) + "_" +
-                   instanceFingerprint.getUuid();
+                instanceFingerprint.getUuid();
     }
 }

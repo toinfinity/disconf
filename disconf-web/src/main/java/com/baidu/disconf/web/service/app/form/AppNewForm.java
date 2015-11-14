@@ -6,10 +6,13 @@ import org.hibernate.validator.constraints.NotEmpty;
 
 import com.baidu.dsp.common.form.RequestFormBase;
 
+import lombok.Data;
+
 /**
  * @author liaoqiqi
  * @version 2014-1-24
  */
+@Data
 public class AppNewForm extends RequestFormBase {
 
     /**
@@ -26,24 +29,7 @@ public class AppNewForm extends RequestFormBase {
     @NotEmpty(message = "desc.empty")
     private String desc;
 
-    public String getApp() {
-        return app;
-    }
+    // 邮箱
+    private String emails = "";
 
-    public void setApp(String app) {
-        this.app = app;
-    }
-
-    public String getDesc() {
-        return desc;
-    }
-
-    public void setDesc(String desc) {
-        this.desc = desc;
-    }
-
-    @Override
-    public String toString() {
-        return "AppNew [app=" + app + ", desc=" + desc + "]";
-    }
 }

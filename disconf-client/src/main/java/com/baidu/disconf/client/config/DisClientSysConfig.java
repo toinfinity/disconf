@@ -36,13 +36,10 @@ public class DisClientSysConfig {
 
     /**
      * load config normal
-     *
-     * @param bundle
-     * @param filePath
      */
     public synchronized void loadConfig(String filePath) throws Exception {
 
-        if (isLoaded == true) {
+        if (isLoaded) {
             return;
         }
 
@@ -64,7 +61,7 @@ public class DisClientSysConfig {
      * @author
      * @since 1.0.0
      */
-    @DisInnerConfigAnnotation(name = "conf_server_store_action")
+    @DisInnerConfigAnnotation(name = "disconf.conf_server_store_action")
     public String CONF_SERVER_STORE_ACTION;
 
     /**
@@ -73,7 +70,7 @@ public class DisClientSysConfig {
      * @author
      * @since 1.0.0
      */
-    @DisInnerConfigAnnotation(name = "conf_server_zoo_action")
+    @DisInnerConfigAnnotation(name = "disconf.conf_server_zoo_action")
     public String CONF_SERVER_ZOO_ACTION;
 
     /**
@@ -82,7 +79,7 @@ public class DisClientSysConfig {
      * @author
      * @since 1.0.0
      */
-    @DisInnerConfigAnnotation(name = "conf_server_master_num_action")
+    @DisInnerConfigAnnotation(name = "disconf.conf_server_master_num_action")
     public String CONF_SERVER_MASTER_NUM_ACTION;
 
     /**
@@ -91,7 +88,7 @@ public class DisClientSysConfig {
      * @author
      * @since 1.0.0
      */
-    @DisInnerConfigAnnotation(name = "local_dowload_dir")
+    @DisInnerConfigAnnotation(name = "disconf.local_download_dir")
     public String LOCAL_DOWNLOAD_DIR;
 
     /**
@@ -100,7 +97,7 @@ public class DisClientSysConfig {
      * @author
      * @since 1.0.0
      */
-    @DisInnerConfigAnnotation(name = "enable_local_download_dir_in_class_path", defaultValue = "true")
+    @DisInnerConfigAnnotation(name = "disconf.enable_local_download_dir_in_class_path", defaultValue = "true")
     public boolean ENABLE_LOCAL_DOWNLOAD_DIR_IN_CLASS_PATH = true;
 
 }

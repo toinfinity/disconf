@@ -13,38 +13,35 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.jdbc.core.simple.SimpleJdbcTemplate;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.junit4.AbstractTransactionalJUnit4SpringContextTests;
 
 import com.baidu.ub.common.log.AopLogFactory;
 
 /**
- * 
  * @author liaoqiqi
  * @version 2014-1-23
  */
-public abstract class AbstractTestCase extends
-        AbstractTransactionalJUnit4SpringContextTests {
+public abstract class AbstractTestCase extends AbstractTransactionalJUnit4SpringContextTests {
 
-    protected final static Logger LOG = AopLogFactory
-            .getLogger(AbstractTestCase.class);
+    protected final static Logger LOG = AopLogFactory.getLogger(AbstractTestCase.class);
 
     /**
      * 业务数据库
      */
-    @SuppressWarnings("deprecation")
     @Autowired
     @Qualifier(value = "dataSource2")
     public void setDataSource(DataSource dataSource) {
-        super.simpleJdbcTemplate = new SimpleJdbcTemplate(dataSource);
+        this.jdbcTemplate = new JdbcTemplate(dataSource);
     }
 
     private static final String TEST_DATA_SQL_BASE_PATH = "sql/testdata/1_0_0/";
 
     /**
      * 根据测试文件名获取测试文件位置
-     * 
+     *
      * @param fileName
+     *
      * @return
      */
     public static String getSQLFullPath(String fileName) {
@@ -58,10 +55,11 @@ public abstract class AbstractTestCase extends
 
     /**
      * 把一个bean的某个属性mock成mockTo类
-     * 
+     *
      * @param bean
      * @param sField
      * @param mockTo
+     *
      * @return
      */
     public Object mock(Object bean, String sField, Object mockTo) {
@@ -95,9 +93,7 @@ public abstract class AbstractTestCase extends
 
     /**
      * 执行SQL文件
-     * 
-     * @param filePath
-     * @return
+     *
      * @throws IOException
      */
     public String execute(String sqlFileName) throws IOException {

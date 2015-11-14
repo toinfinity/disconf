@@ -42,13 +42,11 @@ public final class DisClientConfig {
     /**
      * load config normal
      *
-     * @param filePath
-     *
      * @throws Exception
      */
     public synchronized void loadConfig(String filePath) throws Exception {
 
-        if (isLoaded == true) {
+        if (isLoaded) {
             return;
         }
 
@@ -59,7 +57,14 @@ public final class DisClientConfig {
             filePathInternal = filePath;
         }
 
-        DisconfAutowareConfig.autowareConfig(INSTANCE, filePathInternal);
+        try {
+            DisconfAutowareConfig.autowareConfig(INSTANCE, filePathInternal);
+        } catch (Exception e) {
+            LOGGER.warn("cannot find " + filePathInternal + ", using sys var or user input.");
+        }
+
+        // 使用system env 导入
+        DisconfAutowareConfig.autowareConfigWithSystemEnv(INSTANCE);
 
         isLoaded = true;
     }
@@ -67,8 +72,10 @@ public final class DisClientConfig {
     /**
      * 配置文件服务器 HOST
      */
-    @DisInnerConfigAnnotation(name = "conf_server_host")
+    public static final String CONF_SERVER_HOST_NAME = "disconf.conf_server_host";
+    @DisInnerConfigAnnotation(name = DisClientConfig.CONF_SERVER_HOST_NAME)
     public String CONF_SERVER_HOST;
+
     private List<String> hostList;
 
     /**
@@ -77,7 +84,8 @@ public final class DisClientConfig {
      * @author
      * @since 1.0.0
      */
-    @DisInnerConfigAnnotation(name = "app")
+    public static final String APP_NAME = "disconf.app";
+    @DisInnerConfigAnnotation(name = DisClientConfig.APP_NAME)
     public String APP;
 
     /**
@@ -86,7 +94,8 @@ public final class DisClientConfig {
      * @author
      * @since 1.0.0
      */
-    @DisInnerConfigAnnotation(name = "version", defaultValue = Constants.DEFAULT_VERSION)
+    public static final String VERSION_NAME = "disconf.version";
+    @DisInnerConfigAnnotation(name = DisClientConfig.VERSION_NAME, defaultValue = Constants.DEFAULT_VERSION)
     public String VERSION = Constants.DEFAULT_VERSION;
 
     /**
@@ -95,7 +104,7 @@ public final class DisClientConfig {
      * @author
      * @since 1.0.0
      */
-    @DisInnerConfigAnnotation(name = "maintype")
+    @DisInnerConfigAnnotation(name = "disconf.maintype")
     public String MAIN_TYPE;
 
     /**
@@ -104,7 +113,8 @@ public final class DisClientConfig {
      * @author
      * @since 1.0.0
      */
-    @DisInnerConfigAnnotation(name = "env", defaultValue = Constants.DEFAULT_ENV)
+    public static final String ENV_NAME = "disconf.env";
+    @DisInnerConfigAnnotation(name = DisClientConfig.ENV_NAME, defaultValue = Constants.DEFAULT_ENV)
     public String ENV = Constants.DEFAULT_ENV;
 
     /**
@@ -113,7 +123,8 @@ public final class DisClientConfig {
      * @author
      * @since 1.0.0
      */
-    @DisInnerConfigAnnotation(name = "enable.remote.conf", defaultValue = "false")
+    private static final String ENABLE_REMOTE_CONF_NAME = "disconf.enable.remote.conf";
+    @DisInnerConfigAnnotation(name = DisClientConfig.ENABLE_REMOTE_CONF_NAME, defaultValue = "false")
     public boolean ENABLE_DISCONF = false;
 
     /**
@@ -124,7 +135,7 @@ public final class DisClientConfig {
      * @author
      * @since 1.0.0
      */
-    @DisInnerConfigAnnotation(name = "debug", defaultValue = "false")
+    @DisInnerConfigAnnotation(name = "disconf.debug", defaultValue = "false")
     public boolean DEBUG = false;
 
     /**
@@ -133,7 +144,7 @@ public final class DisClientConfig {
      * @author
      * @since 1.0.0
      */
-    @DisInnerConfigAnnotation(name = "ignore", defaultValue = "")
+    @DisInnerConfigAnnotation(name = "disconf.ignore", defaultValue = "")
     public String IGNORE_DISCONF_LIST = "";
     private Set<String> ignoreDisconfKeySet = new HashSet<String>();
 
@@ -143,8 +154,17 @@ public final class DisClientConfig {
      * @author
      * @since 1.0.0
      */
-    @DisInnerConfigAnnotation(name = "conf_server_url_retry_times", defaultValue = "3")
+    @DisInnerConfigAnnotation(name = "disconf.conf_server_url_retry_times", defaultValue = "3")
     public int CONF_SERVER_URL_RETRY_TIMES = 3;
+
+    /**
+     * 用户指定的 下载文件夹, 远程文件下载后会放在这里
+     *
+     * @author
+     * @since 1.0.0
+     */
+    @DisInnerConfigAnnotation(name = "disconf.user_define_download_dir", defaultValue = "./disconf/download")
+    public String userDefineDownloadDir = "./disconf/download";
 
     /**
      * 获取远程配置 重试时休眠时间，默认是5秒
@@ -152,8 +172,8 @@ public final class DisClientConfig {
      * @author
      * @since 1.0.0
      */
-    @DisInnerConfigAnnotation(name = "conf_server_url_retry_sleep_seconds", defaultValue = "2")
-    public int CONF_SERVER_URL_RETRY_SLEEP_SECONDS = 5;
+    @DisInnerConfigAnnotation(name = "disconf.conf_server_url_retry_sleep_seconds", defaultValue = "2")
+    public int confServerUrlRetrySleepSeconds = 2;
 
     public List<String> getHostList() {
         return hostList;

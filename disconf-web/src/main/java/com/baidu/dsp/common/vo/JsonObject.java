@@ -5,12 +5,15 @@ import java.util.Map;
 
 import com.baidu.dsp.common.constant.FrontEndInterfaceConstant;
 
+import lombok.Data;
+
 /**
  * 多层结构的 成功返回
  *
  * @author liaoqiqi
  * @version 2013-12-3
  */
+@Data
 public class JsonObject extends JsonObjectBase {
 
     /**
@@ -23,14 +26,6 @@ public class JsonObject extends JsonObjectBase {
     public JsonObject() {
         super();
         success = FrontEndInterfaceConstant.RETURN_OK;
-    }
-
-    public Map<String, Object> getResult() {
-        return result;
-    }
-
-    public void setResult(Map<String, Object> result) {
-        this.result = result;
     }
 
     public void addData(String key, Object value) {

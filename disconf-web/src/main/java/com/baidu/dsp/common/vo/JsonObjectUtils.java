@@ -6,9 +6,10 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.NoSuchMessageException;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.view.json.MappingJacksonJsonView;
+import org.springframework.web.servlet.view.json.MappingJackson2JsonView;
 
 import com.baidu.dsp.common.constant.ErrorCode;
 import com.baidu.dsp.common.constant.FrontEndInterfaceConstant;
@@ -52,7 +53,6 @@ public class JsonObjectUtils {
     /**
      * 返回正确(顶层结构), 非列表请求
      *
-     * @param key
      * @param value
      *
      * @return
@@ -68,7 +68,6 @@ public class JsonObjectUtils {
     /**
      * 返回正确, 列表请求
      *
-     * @param key
      * @param value
      *
      * @return
@@ -104,11 +103,32 @@ public class JsonObjectUtils {
     }
 
     /**
-     * 参数错误: global
+     * 参数错误: Field
      *
-     * @param bindingResult
+     * @param errors
      *
      * @return
+     */
+    public static JsonObjectBase buildFieldError(Map<String, String> errors, Map<String, Object[]> argsMap,
+                                                 ErrorCode statusCode) {
+
+        JsonObjectError json = new JsonObjectError();
+        json.setStatus(statusCode.getCode());
+
+        for (String str : errors.keySet()) {
+
+            try {
+                json.addFieldError(str, contextReader.getMessage(errors.get(str), argsMap.get(str)));
+            } catch (NoSuchMessageException e) {
+                json.addFieldError(str, errors.get(str));
+            }
+        }
+
+        return json;
+    }
+
+    /**
+     * 参数错误: global
      */
     public static JsonObjectBase buildGlobalError(String error, ErrorCode errorCode) {
 
@@ -121,11 +141,10 @@ public class JsonObjectUtils {
     }
 
     /**
-     * @param jsonObjectBase
      */
     public static ModelAndView JsonObjectError2ModelView(JsonObjectError json) {
 
-        ModelAndView model = new ModelAndView(new MappingJacksonJsonView());
+        ModelAndView model = new ModelAndView(new MappingJackson2JsonView());
         model.addObject(FrontEndInterfaceConstant.RETURN_SUCCESS, json.getSuccess());
         model.addObject(FrontEndInterfaceConstant.RETURN_MESSAGE, json.getMessage());
         model.addObject(FrontEndInterfaceConstant.STATUS_CODE_STRING, json.getStatus());

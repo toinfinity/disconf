@@ -45,10 +45,10 @@ echo "copy online config " $ONLINE_CONFIG_PATH
 echo "**********************************************"
 if [ -d "src/main/online-resources" ]; then
     printf '%s\n' "Removing src/main/online-resources/*"
-    rm src/main/online-resources/*
+    rm -rf src/main/online-resources/*
 fi
 mkdir -p src/main/online-resources
-cp "$ONLINE_CONFIG_PATH"/* src/main/online-resources -rp
+cp -rp "$ONLINE_CONFIG_PATH"/* src/main/online-resources 
 
 echo "**********************************************"
 echo "It's going to Generate the output for war"
@@ -77,17 +77,17 @@ cd html
 python build.py
 
 #
-cd $current_path
+cd ${current_path}
 
 
 #
 # 清空原始目录 
 #
-mkdir -p $WAR_ROOT_PATH
-if [ ${#WAR_ROOT_PATH} -gt 15 ]; then 
+mkdir -p ${WAR_ROOT_PATH}
+if [ ${#WAR_ROOT_PATH} -gt 15 ]; then
 	echo "rm " $WAR_ROOT_PATH
 	rm -rf "$WAR_ROOT_PATH"
-    mkdir -p $WAR_ROOT_PATH
+    mkdir -p ${WAR_ROOT_PATH}
 fi	
 
 
@@ -95,25 +95,25 @@ fi
 #
 #
 echo "start to copy war"
-cp output/disconf-web.war  $WAR_ROOT_PATH  -rp
+cp -rp output/disconf-web.war  $WAR_ROOT_PATH  
 
 #
 #
 #
 echo "start to copy static"
-mkdir $WAR_ROOT_PATH/html
-cp html/output/* $WAR_ROOT_PATH/html -rp
+mkdir ${WAR_ROOT_PATH}/html
+cp -rp html/output/* $WAR_ROOT_PATH/html
 
 #
 #
 #
 
-cd $WAR_ROOT_PATH 
+cd ${WAR_ROOT_PATH}
 
 echo "start to jar war"
 jar xvf disconf-web.war
 
-cd $current_path
+cd ${current_path}
 
 echo "deploy done" $WAR_ROOT_PATH
 

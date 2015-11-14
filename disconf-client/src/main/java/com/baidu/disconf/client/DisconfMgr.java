@@ -1,5 +1,6 @@
 package com.baidu.disconf.client;
 
+import java.util.List;
 import java.util.Timer;
 
 import org.slf4j.Logger;
@@ -26,7 +27,7 @@ public class DisconfMgr {
 
     // 本实例不能初始化两次
     private static boolean isFirstInit = false;
-    private static boolean isSecondeInit = false;
+    private static boolean isSecondInit = false;
 
     // 扫描器
     private static ScanMgr scanMgr = null;
@@ -39,25 +40,21 @@ public class DisconfMgr {
 
     /**
      * 总入口
-     *
-     * @param scanPackage
      */
-    public synchronized static void start(String scanPackage) {
+    public synchronized static void start(List<String> scanPackageList) {
 
-        firstScan(scanPackage);
+        firstScan(scanPackageList);
 
         secondScan();
     }
 
     /**
-     * 第一次扫描，静态扫描
-     *
-     * @param scanPackage
+     * 第一次扫描，静态扫描 for annotation config
      */
-    public synchronized static void firstScan(String scanPackage) {
+    public synchronized static void firstScan(List<String> scanPackageList) {
 
         // 该函数不能调用两次
-        if (isFirstInit == true) {
+        if (isFirstInit) {
             LOGGER.info("DisConfMgr has been init, ignore........");
             return;
         }
@@ -71,19 +68,13 @@ public class DisconfMgr {
             // 导入配置
             ConfigMgr.init();
 
-            // 是否开启远程配置
-            if (DisClientConfig.getInstance().ENABLE_DISCONF == false) {
-                LOGGER.info("FIRST_SCAN, ENABLE_REMOTE_CONF==0, we use Local Configuration.");
-                return;
-            }
-
             LOGGER.info("******************************* DISCONF START FIRST SCAN *******************************");
 
             // 扫描器
             scanMgr = ScanFactory.getScanMgr();
 
             // 第一次扫描并入库
-            scanMgr.firstScan(scanPackage);
+            scanMgr.firstScan(scanPackageList);
 
             // 获取数据/注入/Watch
             disconfCoreMgr = DisconfCoreFactory.getDisconfCoreMgr();
@@ -101,16 +92,65 @@ public class DisconfMgr {
     }
 
     /**
-     * reloadable config file scan
+     * 第二次扫描, 动态扫描, for annotation config
      */
-    public synchronized static void reloadableScan(String filename) {
+    public synchronized static void secondScan() {
 
-        // 是否开启远程配置
-        if (DisClientConfig.getInstance().ENABLE_DISCONF == false) {
+        // 该函数必须第一次运行后才能运行
+        if (!isFirstInit) {
+            LOGGER.info("should run First Scan before Second Scan.");
             return;
         }
 
+        // 第二次扫描也只能做一次
+        if (isSecondInit) {
+            LOGGER.info("should not run twice.");
+            return;
+        }
+
+        LOGGER.info("******************************* DISCONF START SECOND SCAN *******************************");
+
+        try {
+
+            // 扫描回调函数
+            scanMgr.secondScan();
+
+            // 注入数据至配置实体中
+            disconfCoreMgr.inject2DisconfInstance();
+
+        } catch (Exception e) {
+            LOGGER.error(e.toString(), e);
+        }
+
+        isSecondInit = true;
+
+        //
+        // 不开启 则不要启动timer和打印变量map
+        //
+        if (DisClientConfig.getInstance().ENABLE_DISCONF) {
+            //
+            // start timer
+            //
+            //startTimer();
+
+            //
+            LOGGER.info("Conf File Map: " + DisconfStoreProcessorFactory.getDisconfStoreFileProcessor().confToString());
+            //
+            LOGGER.info("Conf Item Map: " + DisconfStoreProcessorFactory.getDisconfStoreItemProcessor().confToString());
+        }
+        LOGGER.info("******************************* DISCONF END *******************************");
+    }
+
+    /**
+     * reloadable config file scan, for xml config
+     */
+    public synchronized static void reloadableScan(String filename) {
+
         if (!isFirstInit) {
+            return;
+        }
+
+        if (!DisClientConfig.getInstance().ENABLE_DISCONF) {
             return;
         }
 
@@ -137,60 +177,6 @@ public class DisconfMgr {
     }
 
     /**
-     * 第二次扫描, 动态扫描
-     *
-     * @param
-     */
-    public synchronized static void secondScan() {
-
-        // 是否开启远程配置
-        if (DisClientConfig.getInstance().ENABLE_DISCONF == false) {
-            LOGGER.info("SECOND_SCAN, ENABLE_REMOTE_CONF==0, we use Local Configuration.");
-            return;
-        }
-
-        // 该函数必须第一次运行后才能运行
-        if (isFirstInit == false) {
-            LOGGER.info("should run First Scan before Second Scan.");
-            return;
-        }
-
-        // 第二次扫描也只能做一次
-        if (isSecondeInit == true) {
-            LOGGER.info("should not run twice.");
-            return;
-        }
-
-        LOGGER.info("******************************* DISCONF START SECOND SCAN *******************************");
-
-        try {
-
-            // 扫描回调函数
-            scanMgr.secondScan();
-
-            // 注入数据至配置实体中
-            disconfCoreMgr.inject2DisconfInstance();
-
-        } catch (Exception e) {
-            LOGGER.error(e.toString(), e);
-        }
-
-        isSecondeInit = true;
-
-        //
-        // start timer
-        //
-        startTimer();
-
-        //
-        LOGGER.info("Conf File Map: " + DisconfStoreProcessorFactory.getDisconfStoreFileProcessor().confToString());
-        //
-        LOGGER.info("Conf Item Map: " + DisconfStoreProcessorFactory.getDisconfStoreItemProcessor().confToString());
-
-        LOGGER.info("******************************* DISCONF END *******************************");
-    }
-
-    /**
      *
      */
     private static void startTimer() {
@@ -202,11 +188,7 @@ public class DisconfMgr {
     }
 
     /**
-     * @return void
-     *
      * @Description: 总关闭
-     * @author liaoqiqi
-     * @date 2013-6-14
      */
     public synchronized static void close() {
 
@@ -226,7 +208,7 @@ public class DisconfMgr {
 
             // close, 必须将其设置为False,以便重新更新
             isFirstInit = false;
-            isSecondeInit = false;
+            isSecondInit = false;
 
         } catch (Exception e) {
 

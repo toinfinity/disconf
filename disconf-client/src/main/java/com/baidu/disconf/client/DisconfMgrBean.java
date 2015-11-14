@@ -1,6 +1,7 @@
 package com.baidu.disconf.client;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.springframework.beans.BeansException;
@@ -11,6 +12,7 @@ import org.springframework.core.Ordered;
 import org.springframework.core.PriorityOrdered;
 
 import com.baidu.disconf.client.store.inner.DisconfCenterHostFilesStore;
+import com.github.knightliao.apollo.utils.common.StringUtil;
 
 /**
  * 第一次扫描，静态扫描
@@ -26,15 +28,26 @@ public class DisconfMgrBean implements BeanDefinitionRegistryPostProcessor, Prio
     @Deprecated
     private Set<String> fileList = new HashSet<String>();
 
+    public final static String SCAN_SPLIT_TOKEN = ",";
+
     /**
      *
      */
     private String scanPackage = null;
 
+    public DisconfMgrBean() {
+    }
+
     /**
      * 关闭
      */
+    @Deprecated
     public void destory() {
+
+        DisconfMgr.close();
+    }
+
+    public void destroy() {
 
         DisconfMgr.close();
     }
@@ -49,7 +62,7 @@ public class DisconfMgrBean implements BeanDefinitionRegistryPostProcessor, Prio
 
     @Override
     public int getOrder() {
-        return Ordered.HIGHEST_PRECEDENCE - 1;
+        return Ordered.HIGHEST_PRECEDENCE + 1;
     }
 
     /**
@@ -70,14 +83,23 @@ public class DisconfMgrBean implements BeanDefinitionRegistryPostProcessor, Prio
         // 为了做兼容
         DisconfCenterHostFilesStore.getInstance().addJustHostFileSet(fileList);
 
+        List<String> scanPackList = StringUtil.parseStringToStringList(scanPackage, SCAN_SPLIT_TOKEN);
+        // unique
+        Set<String> hs = new HashSet<String>();
+        hs.addAll(scanPackList);
+        scanPackList.clear();
+        scanPackList.addAll(hs);
+
         // 进行扫描
-        DisconfMgr.firstScan(scanPackage);
+        DisconfMgr.firstScan(scanPackList);
     }
 
+    @Deprecated
     public Set<String> getFileList() {
         return fileList;
     }
 
+    @Deprecated
     public void setFileList(Set<String> fileList) {
         this.fileList = fileList;
     }

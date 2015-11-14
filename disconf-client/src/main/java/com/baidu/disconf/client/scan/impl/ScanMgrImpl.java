@@ -54,12 +54,12 @@ public class ScanMgrImpl implements ScanMgr {
      *
      * @throws Exception
      */
-    public void firstScan(String packageName) throws Exception {
+    public void firstScan(List<String> packageNameList) throws Exception {
 
-        LOGGER.debug("start to scan package: " + packageName);
+        LOGGER.debug("start to scan package: " + packageNameList.toString());
 
         // 获取扫描对象并分析整合
-        scanModel = scanStaticStrategy.scan(packageName);
+        scanModel = scanStaticStrategy.scan(packageNameList);
 
         // 增加非注解的配置
         scanModel.setJustHostFiles(DisconfCenterHostFilesStore.getInstance().getJustHostFiles());
@@ -80,17 +80,21 @@ public class ScanMgrImpl implements ScanMgr {
      */
     public void secondScan() throws Exception {
 
-        if (scanModel == null) {
-            synchronized(scanModel) {
-                // 下载模块必须先初始化
-                if (scanModel == null) {
-                    throw new Exception("You should run first scan before second Scan");
+        // 开启disconf才需要处理回调
+        if (DisClientConfig.getInstance().ENABLE_DISCONF) {
+
+            if (scanModel == null) {
+                synchronized(scanModel) {
+                    // 下载模块必须先初始化
+                    if (scanModel == null) {
+                        throw new Exception("You should run first scan before second Scan");
+                    }
                 }
             }
-        }
 
-        // 将回调函数实例化并写入仓库
-        ScanDynamicStoreAdapter.scanUpdateCallbacks(scanModel);
+            // 将回调函数实例化并写入仓库
+            ScanDynamicStoreAdapter.scanUpdateCallbacks(scanModel);
+        }
     }
 
     /**

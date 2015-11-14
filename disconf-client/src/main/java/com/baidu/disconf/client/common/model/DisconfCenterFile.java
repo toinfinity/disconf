@@ -1,8 +1,11 @@
 package com.baidu.disconf.client.common.model;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
+
+import com.baidu.disconf.client.common.constants.SupportFileTypeEnum;
 
 /**
  * 配置文件表示
@@ -24,6 +27,9 @@ public class DisconfCenterFile extends DisconfCenterBaseModel {
 
     // 文件名
     private String fileName;
+
+    // 文件类型
+    private SupportFileTypeEnum supportFileTypeEnum = SupportFileTypeEnum.ANY;
 
     public Class<?> getCls() {
         return cls;
@@ -57,22 +63,28 @@ public class DisconfCenterFile extends DisconfCenterBaseModel {
         this.additionalKeyMaps = additionalKeyMaps;
     }
 
+    public SupportFileTypeEnum getSupportFileTypeEnum() {
+        return supportFileTypeEnum;
+    }
+
+    public void setSupportFileTypeEnum(SupportFileTypeEnum supportFileTypeEnum) {
+        this.supportFileTypeEnum = supportFileTypeEnum;
+    }
+
     @Override
     public String toString() {
         return "\n\tDisconfCenterFile [\n\tkeyMaps=" + keyMaps + "\n\tcls=" + cls + "\n\tfileName=" + fileName +
-                   super.toString() + "]";
+                super.toString() + "]";
     }
 
     @Override
     public String infoString() {
         return "\n\tDisconfCenterFile [\n\tkeyMaps=" + keyMaps + "\n" +
-                   "\tadditionalKeyMaps=\" + additionalKeyMaps + \n\tcls=" + cls + super.infoString() + "]";
+                "\tadditionalKeyMaps=" + additionalKeyMaps + "\n\tcls=" + cls + super.infoString() + "]";
     }
 
     /**
      * 获取可以表示的KeyMap对
-     *
-     * @return
      */
     public Map<String, Object> getKV() {
 
@@ -102,6 +114,7 @@ public class DisconfCenterFile extends DisconfCenterBaseModel {
 
         private Object value;
         private Field field;
+        private Method setMethod;
 
         public Object getValue() {
             return value;
@@ -119,16 +132,35 @@ public class DisconfCenterFile extends DisconfCenterBaseModel {
             this.field = field;
         }
 
+        public Method getSetMethod() {
+            return setMethod;
+        }
+
+        public void setSetMethod(Method setMethod) {
+            this.setMethod = setMethod;
+        }
+
         @Override
         public String toString() {
-            return "FileItemValue [value=" + value + ", field=" + field + "]";
+            return "FileItemValue{" +
+                    "value=" + value +
+                    ", field=" + field +
+                    ", setMethod=" + setMethod +
+                    '}';
         }
 
         public FileItemValue(Object value, Field field) {
             super();
             this.value = value;
             this.field = field;
+
         }
 
+        public FileItemValue(Object value, Field field, Method setMethod) {
+            super();
+            this.value = value;
+            this.field = field;
+            this.setMethod = setMethod;
+        }
     }
 }
